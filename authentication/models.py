@@ -1,40 +1,40 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
-from django.contrib.auth.models import BaseUserManager
+from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 
 
-class AccountManager(BaseUserManager):
-    def create_user(self, email, password=None, **kwargs):
-        # Ensure that an email address is set
-        if not email:
-            raise ValueError('Users must have a valid e-mail address')
+class UserManager(BaseUserManager):
 
-        # Ensure that a username is set
-        if not kwargs.get('username'):
-            raise ValueError('Users must have a valid username')
+    def create_user(self, username, email, password=None):
+        """Create and return a `User` with an email, username and password."""
+        if username is None:
+            raise TypeError('Users must have a username.')
 
-        account = self.model(
-            email=self.normalize_email(email),
-            username=kwargs.get('username'),
-            firstname=kwargs.get('firstname', None),
-            lastname=kwargs.get('lastname', None),
-        )
+        if email is None:
+            raise TypeError('Users must have an email address.')
 
-        account.set_password(password)
-        account.save()
+        user = self.model(username=username, email=self.normalize_email(email))
+        user.set_password(password)
+        user.save()
 
-        return account
+        return user
 
-    def create_superuser(self, email, password=None, **kwargs):
-        account = self.create_user(email, password, kwargs)
+    def create_superuser(self, username, email, password):
+        """
+        Create and return a `User` with superuser (admin) permissions.
+        """
+        if password is None:
+            raise TypeError('Superusers must have a password.')
 
-        account.is_admin = True
-        account.save()
+        user = self.create_user(username, email, password)
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
 
-        return account
+        return user
 
 
-class Account(AbstractBaseUser):
+class Member(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(unique=True, max_length=50)
     email = models.EmailField(unique=True)
 
@@ -44,9 +44,9 @@ class Account(AbstractBaseUser):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
-    is_admin = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
 
-    objects = AccountManager()
+    objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

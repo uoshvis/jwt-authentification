@@ -2,22 +2,28 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
-from authentication.serializers import AccountSerializer
-from authentication.models import Account
+from authentication.serializers import MemberSerializer
+from authentication.models import Member
 
 
-class AuthRegister(APIView):
+class MemeberView(APIView):
     """
     Register a new user.
     """
-    serializer_class = AccountSerializer
-    permission_classes = (AllowAny,)
+    serializer_class = MemberSerializer
+    permission_classes = (IsAuthenticated,)
 
-    def post(self, request, format=None):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def list(self, request):
+        queryset = Member.objects.all()
+        serializer = MemberSerializer(queryset, many=True)
+        data = serializer.data
+        return Response(data)
+
+    # def post(self, request, format=None):
+    #     serializer = self.serializer_class(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

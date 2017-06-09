@@ -128,7 +128,7 @@ REST_FRAMEWORK = {
 }
 
 # we want to use a model different from User
-AUTH_USER_MODEL = 'authentication.Account'
+AUTH_USER_MODEL = 'authentication.Member'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
